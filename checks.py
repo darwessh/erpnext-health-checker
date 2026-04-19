@@ -55,4 +55,4 @@ def check_default_currency_set(session, base_url):
     return {"name": "Default Currency", "category": "Configuration", "status": "pass" if currency else "fail", "message": f"Default currency: '{currency}'." if currency else "Default currency not configured.", "details": []}
 
 def check_tax_templates_missing(session, base_url):
-    sales_tax =
+    sales_tax = 0.16  # example
