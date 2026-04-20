@@ -1,14 +1,16 @@
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, render_template
+from flask_cors import CORS
 from checks import run_all_checks
 from gl_checks import run_gl_checks
 from report import generate_report
 import requests, base64, io
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route("/audit", methods=["POST"])
 def audit():
-    body = request.get_json()
+    body = request.get_json(silent=True) or {}
     base_url = body.get("base_url", "").rstrip("/")
     api_key = body.get("api_key", "")
     api_secret = body.get("api_secret", "")
@@ -35,7 +37,7 @@ def audit():
 
 @app.route("/")
 def home():
-    return {"status": "ERPNext Health Checker is running"}
+    return render_template("index.html")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
