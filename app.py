@@ -4,9 +4,13 @@ from checks import run_all_checks
 from gl_checks import run_gl_checks
 from report import generate_report
 import requests, base64, io
+import os
 
 app = Flask(__name__)
-CORS(app)
+cors_origins = os.getenv("CORS_ORIGINS", "").strip()
+if cors_origins:
+    allowed_origins = [origin.strip() for origin in cors_origins.split(",") if origin.strip()]
+    CORS(app, resources={r"/audit": {"origins": allowed_origins}})
 
 @app.route("/audit", methods=["POST"])
 def audit():

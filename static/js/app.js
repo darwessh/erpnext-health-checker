@@ -36,7 +36,7 @@ form.addEventListener("submit", async (event) => {
           message = data.error;
         }
       } catch (err) {
-        // no-op
+        console.warn("Failed to parse error response JSON.", err);
       }
       throw new Error(message);
     }
