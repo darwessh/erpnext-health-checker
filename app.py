@@ -29,7 +29,7 @@ def audit():
     session = requests.Session()
     session.headers["Authorization"] = f"token {api_key}:{api_secret}"
 
-    test = session.get(f"{base_url}/api/method/frappe.auth.get_logged_user")
+    test = session.get(f"{base_url}/api/method/frappe.auth.get_logged_user", timeout=30)
     if test.status_code != 200:
         return {"error": "Authentication failed"}, 401
 

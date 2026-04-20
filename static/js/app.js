@@ -3,6 +3,8 @@ const submitBtn = document.getElementById("submit-btn");
 const statusEl = document.getElementById("status");
 const errorEl = document.getElementById("error");
 
+const AUDIT_TIMEOUT_MS = 60_000;
+
 function setLoadingState(isLoading) {
   submitBtn.disabled = isLoading;
   submitBtn.textContent = isLoading ? "Running..." : "Run Audit";
@@ -20,12 +22,18 @@ form.addEventListener("submit", async (event) => {
     api_secret: (formData.get("api_secret") || "").toString().trim(),
   };
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, AUDIT_TIMEOUT_MS);
+
   try {
     setLoadingState(true);
     const response = await fetch("/audit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      signal: controller.signal,
     });
 
     if (!response.ok) {
@@ -53,8 +61,14 @@ form.addEventListener("submit", async (event) => {
     statusEl.textContent = "Audit complete. Download started.";
   } catch (error) {
     statusEl.textContent = "";
-    errorEl.textContent = error.message || "Unexpected error occurred.";
+    if (error.name === "AbortError") {
+      errorEl.textContent =
+        "The audit timed out after 60 seconds. Your ERPNext instance may be slow or unreachable.";
+    } else {
+      errorEl.textContent = error.message || "Unexpected error occurred.";
+    }
   } finally {
+    clearTimeout(timeoutId);
     setLoadingState(false);
   }
 });
