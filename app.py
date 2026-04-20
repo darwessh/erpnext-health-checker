@@ -9,12 +9,16 @@ import os
 app = Flask(__name__)
 cors_origins = os.getenv("CORS_ORIGINS", "").strip()
 if cors_origins:
-    allowed_origins = [origin.strip() for origin in cors_origins.split(",") if origin.strip()]
+    allowed_origins = [origin for origin in (item.strip() for item in cors_origins.split(",")) if origin]
     CORS(app, resources={r"/audit": {"origins": allowed_origins}})
 
 @app.route("/audit", methods=["POST"])
 def audit():
-    body = request.get_json(silent=True) or {}
+    body = request.get_json(silent=True)
+    if body is None:
+        if request.data:
+            return {"error": "Invalid JSON payload"}, 400
+        body = {}
     base_url = body.get("base_url", "").rstrip("/")
     api_key = body.get("api_key", "")
     api_secret = body.get("api_secret", "")
