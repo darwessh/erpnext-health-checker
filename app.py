@@ -9,7 +9,7 @@ import os
 app = Flask(__name__)
 cors_origins = os.getenv("CORS_ORIGINS", "").strip()
 if cors_origins:
-    allowed_origins = [origin for origin in (item.strip() for item in cors_origins.split(",")) if origin]
+    allowed_origins = [origin for origin in (raw_origin.strip() for raw_origin in cors_origins.split(",")) if origin]
     CORS(app, resources={r"/audit": {"origins": allowed_origins}})
 
 @app.route("/audit", methods=["POST"])
