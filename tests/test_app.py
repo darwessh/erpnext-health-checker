@@ -1,5 +1,6 @@
 """Integration tests for the Flask app (app.py)."""
-import sys, os
+import sys
+import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import base64

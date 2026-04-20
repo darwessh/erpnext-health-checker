@@ -1,5 +1,6 @@
 """Tests for report.py — verifies generate_report() returns a valid PDF."""
-import sys, os
+import sys
+import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import base64

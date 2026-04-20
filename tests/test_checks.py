@@ -1,5 +1,6 @@
 """Unit tests for checks.py — all HTTP calls are mocked."""
-import sys, os
+import sys
+import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from unittest.mock import MagicMock, patch, call

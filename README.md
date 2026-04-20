@@ -1,6 +1,6 @@
 # ERPNext Health Checker
 
-A tool that connects to any ERPNext instance via its REST API, runs a 22-check audit covering accounting configuration and GL integrity, and produces a scored PDF health report.
+A tool that connects to any ERPNext instance via its REST API, runs a 22-check audit (12 configuration checks + 10 GL integrity checks) covering accounting configuration and GL integrity, and produces a scored PDF health report.
 
 A browser-based UI is served at `/` — no REST client needed.
 
@@ -121,8 +121,8 @@ The suite (74 tests) uses `unittest.mock` — no live ERPNext instance is requir
 
 ```
 app.py           Flask application and /audit route
-checks.py        22 configuration-level checks
-gl_checks.py     GL integrity and reconciliation checks
+checks.py        12 configuration-level checks
+gl_checks.py     10 GL integrity and reconciliation checks
 report.py        ReportLab PDF generation
 handler.py       AWS Lambda entry-point (alternate deployment)
 tests/           pytest test suite
