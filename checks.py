@@ -106,16 +106,32 @@ def check_fiscal_year_configured(session, base_url):
 
 
 def check_default_currency_set(session, base_url):
-    res = session.get(f"{base_url}/api/resource/Global Defaults/Global Defaults")
+    res = session.get(f"{base_url}/api/resource/Global Defaults/Global Defaults", timeout=30)
     currency = res.json().get("data", {}).get("default_currency", "")
     return {"name": "Default Currency", "category": "Configuration", "status": "pass" if currency else "fail", "message": f"Default currency: '{currency}'." if currency else "Default currency not configured.", "details": []}
 
 
 def _get_list(session, base_url, doctype, filters=None, fields=None, limit=500):
-    params = {"limit_page_length": limit, "fields": json.dumps(fields or ["name"])}
-    if filters:
-        params["filters"] = json.dumps(filters)
-    res = session.get(f"{base_url}/api/resource/{doctype}", params=params)
-    if res.status_code != 200:
-        return []
-    return res.json().get("data", [])
+    """Fetch all matching records, paginating in chunks of ``limit`` rows."""
+    page_size = limit
+    all_records = []
+    start = 0
+    while True:
+        params = {
+            "limit_page_length": page_size,
+            "limit_start": start,
+            "fields": json.dumps(fields or ["name"]),
+        }
+        if filters:
+            params["filters"] = json.dumps(filters)
+        res = session.get(
+            f"{base_url}/api/resource/{doctype}", params=params, timeout=30
+        )
+        if res.status_code != 200:
+            break
+        batch = res.json().get("data", [])
+        all_records.extend(batch)
+        if len(batch) < page_size:
+            break
+        start += page_size
+    return all_records

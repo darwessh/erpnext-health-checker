@@ -532,12 +532,14 @@ def _query(session, base_url, sql):
     """Run a raw SQL query via ERPNext's query API."""
     res = session.post(
         f"{base_url}/api/method/frappe.client.get_list",
-        json={"method": "frappe.client.run_query", "args": {"query": sql}}
+        json={"method": "frappe.client.run_query", "args": {"query": sql}},
+        timeout=30,
     )
     # ERPNext exposes raw SQL via /api/method/frappe.db.sql for permitted users
     res2 = session.get(
         f"{base_url}/api/method/frappe.db.sql",
-        params={"query": sql, "as_dict": 1}
+        params={"query": sql, "as_dict": 1},
+        timeout=30,
     )
     if res2.status_code == 200:
         return res2.json().get("message", [])
@@ -545,16 +547,29 @@ def _query(session, base_url, sql):
 
 
 def _get_list(session, base_url, doctype, filters=None, fields=None, limit=500):
-    params = {
-        "limit_page_length": limit,
-        "fields": json.dumps(fields or ["name"]),
-    }
-    if filters:
-        params["filters"] = json.dumps(filters)
-    res = session.get(f"{base_url}/api/resource/{doctype}", params=params)
-    if res.status_code != 200:
-        return []
-    return res.json().get("data", [])
+    """Fetch all matching records, paginating in chunks of ``limit`` rows."""
+    page_size = limit
+    all_records = []
+    start = 0
+    while True:
+        params = {
+            "limit_page_length": page_size,
+            "limit_start": start,
+            "fields": json.dumps(fields or ["name"]),
+        }
+        if filters:
+            params["filters"] = json.dumps(filters)
+        res = session.get(
+            f"{base_url}/api/resource/{doctype}", params=params, timeout=30
+        )
+        if res.status_code != 200:
+            break
+        batch = res.json().get("data", [])
+        all_records.extend(batch)
+        if len(batch) < page_size:
+            break
+        start += page_size
+    return all_records
 
 
 def _fmt(value: Decimal) -> str:
